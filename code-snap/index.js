@@ -1,22 +1,13 @@
 import sharp from "sharp";
 
-const API_KEY = process.env.GEMINI_API_KEY;
+const API_KEY = process.env.OPENROUTER_API_KEY;
+const MODEL = process.env.MODEL;
 const MIN_VALID_BYTES = 10000;
 const MAX_DIMENSION = 1080;
 const REQUEST_TIMEOUT_MS = 15000;
 const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
 
-const MODEL_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent";
-
-const RESPONSE_SCHEMA = {
-  type: "object",
-  properties: {
-    detected: { type: "boolean" },
-    code: { type: "string", nullable: true },
-    language: { type: "string", nullable: true },
-  },
-  required: ["detected", "code", "language"],
-};
+const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 const PROMPT_TEXT = `
 You are a code extraction system.
@@ -28,12 +19,13 @@ If the screenshot contains programming code:
 - Fix OCR mistakes
 - Preserve indentation
 - Remove line numbers
-- Return detected: true, the code, and the programming language name in lowercase (e.g. "typescript", "python", "javascript")
+- Return a JSON object with detected: true, the code, and the programming language name in lowercase (e.g. "typescript", "python", "javascript")
 
 If the screenshot does NOT contain code:
-- Return detected: false, code: null, language: null
+- Return a JSON object with detected: false, code: null, language: null
 
-Never explain your decision.
+Respond with ONLY a raw JSON object. No markdown, no explanation.
+Example: {"detected":true,"code":"console.log('hi')","language":"javascript"}
 `;
 
 function respond(payload) {
@@ -45,7 +37,7 @@ function respondError(error) {
 }
 
 if (!API_KEY) {
-  console.error("Missing GEMINI_API_KEY");
+  console.error("Missing OPENROUTER_API_KEY");
   process.exit(1);
 }
 
@@ -89,20 +81,25 @@ async function extractCode() {
 
   let response;
   try {
-    response = await fetch(`${MODEL_URL}?key=${API_KEY}`, {
+    response = await fetch(API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_KEY}`,
+      },
       signal: controller.signal,
       body: JSON.stringify({
-        contents: [
+        model: MODEL,
+        response_format: { type: "json_object" },
+        messages: [
           {
-            parts: [{ text: PROMPT_TEXT }, { inline_data: { mime_type: "image/png", data: base64Image } }],
+            role: "user",
+            content: [
+              { type: "text", text: PROMPT_TEXT },
+              { type: "image_url", image_url: { url: `data:image/png;base64,${base64Image}` } },
+            ],
           },
         ],
-        generationConfig: {
-          response_mime_type: "application/json",
-          response_schema: RESPONSE_SCHEMA,
-        },
       }),
     });
   } catch (error) {
@@ -124,7 +121,7 @@ async function extractCode() {
     return respondError(message);
   }
 
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  const text = data?.choices?.[0]?.message?.content;
   if (!text) return respondError("No response returned from API");
 
   let parsed;

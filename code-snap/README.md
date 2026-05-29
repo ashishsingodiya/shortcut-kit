@@ -1,15 +1,16 @@
 # code-snap
 
-Extracts code from a screenshot using Gemini AI and returns it as JSON.
+Extracts code from a screenshot using OpenRouter AI and returns it as JSON.
 
 ## Usage
 
-```
-export GEMINI_API_KEY="your-gemini-api-key"
-node /path/to/shortcut-kit/code-snap/index.js
+```bash
+export OPENROUTER_API_KEY="your-openrouter-api-key"
+export MODEL="your-openrouter-model-id"
+node /path/to/shortcut-kit/code-snap/main.js
 ```
 
-Receives a screenshot as raw bytes via `stdin`, sends it to Gemini, and writes a JSON result to `stdout`.
+Receives a screenshot as raw bytes via `stdin`, sends it to OpenRouter, and writes a JSON result to `stdout`.
 
 ## Output
 
@@ -31,25 +32,36 @@ Receives a screenshot as raw bytes via `stdin`, sends it to Gemini, and writes a
 
 ## Error cases
 
-| Error                       | Cause                           |
-| --------------------------- | ------------------------------- |
-| `Screenshot cancelled`      | Empty stdin                     |
-| `Screenshot too small`      | Image under 10KB                |
-| `Image too large`           | Image over 25MB                 |
-| `Request timed out`         | Gemini API took over 15s        |
-| `Invalid response from API` | Gemini returned non-JSON        |
-| `API error`                 | Gemini returned an error status |
+| Error                       | Cause                               |
+| --------------------------- | ----------------------------------- |
+| `Screenshot cancelled`      | Empty stdin                         |
+| `Screenshot too small`      | Image under 10KB                    |
+| `Image too large`           | Image over 25MB                     |
+| `Request timed out`         | OpenRouter API took over 15s        |
+| `Invalid response from API` | OpenRouter returned non-JSON        |
+| `API error`                 | OpenRouter returned an error status |
 
 ## Environment
 
-| Variable         | Required | Description    |
-| ---------------- | -------- | -------------- |
-| `GEMINI_API_KEY` | Yes      | Gemini API key |
+| Variable             | Required | Default                                         | Description                         |
+| -------------------- | -------- | ----------------------------------------------- | ----------------------------------- |
+| `OPENROUTER_API_KEY` | Yes      | —                                               | OpenRouter API key                  |
+| `MODEL`              | No       | `meta-llama/llama-3.2-11b-vision-instruct:free` | Any vision-capable OpenRouter model |
+
+## Testing
+
+Use `test.js` to verify the API response for a given image file:
+
+```bash
+node code-snap/test.js /path/to/screenshot.png
+```
+
+This logs the raw API content and the parsed result to the console.
 
 ## Apple Shortcuts setup
 
 1. Take screenshot of area
-2. Run shell script: `node /path/to/shortcut-kit/code-snap/index.js` with screenshot as stdin
+2. Run shell script: `node /path/to/shortcut-kit/code-snap/main.js` with screenshot as stdin
 3. "Get Dictionary from Input" on the output
 4. If `detected` is false → show notification with `error`
 5. If `detected` is true → copy `code` to clipboard
