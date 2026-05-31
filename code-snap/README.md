@@ -43,10 +43,10 @@ Receives a screenshot as raw bytes via `stdin`, sends it to OpenRouter, and writ
 
 ## Environment
 
-| Variable             | Required | Default                                         | Description                         |
-| -------------------- | -------- | ----------------------------------------------- | ----------------------------------- |
-| `OPENROUTER_API_KEY` | Yes      | —                                               | OpenRouter API key                  |
-| `MODEL`              | No       | `meta-llama/llama-3.2-11b-vision-instruct:free` | Any vision-capable OpenRouter model |
+| Variable             | Required | Description                         |
+| -------------------- | -------- | ----------------------------------- |
+| `OPENROUTER_API_KEY` | Yes      | OpenRouter API key                  |
+| `MODEL`              | Yes      | Any vision-capable OpenRouter model |
 
 ## Testing
 
