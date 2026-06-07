@@ -18,16 +18,7 @@ pnpm install
 
 ## Scripts
 
-| Script      | Description                                     |
-| ----------- | ----------------------------------------------- |
-| `code-snap` | Extracts code from a screenshot using Gemini AI |
-
-## Commit Convention
-
-This repo uses [Conventional Commits](https://www.conventionalcommits.org/).
-
-```
-feat(code-snap): add JSON output
-fix(code-snap): flush stdout before exit
-chore: update dependencies
-```
+| Script      | Description                                         |
+| ----------- | --------------------------------------------------- |
+| `code-snap` | Extracts code from a screenshot using OpenRouter AI |
+| `text-snap` | Extracts text from a screenshot using OpenRouter AI |
